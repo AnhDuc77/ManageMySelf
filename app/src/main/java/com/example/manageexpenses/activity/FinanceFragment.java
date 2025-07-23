@@ -62,11 +62,14 @@ public class FinanceFragment extends Fragment {
     private String[] tabs = {"Transactions", "Accounts", "Debts", "Statistics"};
     private BarChart barChartFinance;
     private FloatingActionButton fabAdd;
+    private FloatingActionButton fabFilter;
     private int currentTab = 0;
     private ActivityResultLauncher<Intent> pickBillImageLauncher;
     private Uri selectedBillImageUri = null;
     private String selectedBillImagePath = null;
     private ImageView currentTransactionImageView;
+    private String filterDate = null;
+    private Integer filterCategory = null;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -100,6 +103,7 @@ public class FinanceFragment extends Fragment {
         recyclerView = view.findViewById(R.id.recyclerViewFinance);
         barChartFinance = view.findViewById(R.id.barChartFinance);
         fabAdd = view.findViewById(R.id.fabFinanceAdd);
+        fabFilter = view.findViewById(R.id.fabFinanceFilter);
         fabAdd.setOnClickListener(v -> {
             switch (currentTab) {
                 case 0: showAddTransactionDialog(); break;
@@ -107,6 +111,7 @@ public class FinanceFragment extends Fragment {
                 case 2: showAddDebtDialog(); break;
             }
         });
+        fabFilter.setOnClickListener(v -> showFilterDialog());
         db = Room.databaseBuilder(requireContext(), AppDatabase.class, "todo_manager.db")
                 .allowMainThreadQueries()
                 .fallbackToDestructiveMigration()
@@ -134,11 +139,18 @@ public class FinanceFragment extends Fragment {
             case 0:
                 barChartFinance.setVisibility(View.GONE);
                 recyclerView.setVisibility(View.VISIBLE);
-                transactionList = db.transactionDao().getPersonalTransactions();
-                transactionAdapter = new TransactionAdapter(getContext(), transactionList, t -> {
-                    Intent intent = new Intent(getContext(), TransactionDetailActivity.class);
-                    intent.putExtra("transactionId", t.id);
-                    startActivity(intent);
+                List<Transaction> filteredList = getFilteredTransactions();
+                transactionAdapter = new TransactionAdapter(getContext(), filteredList, new TransactionAdapter.OnItemClickListener() {
+                    @Override
+                    public void onItemClick(Transaction t) {
+                        Intent intent = new Intent(getContext(), TransactionDetailActivity.class);
+                        intent.putExtra("transactionId", t.id);
+                        startActivity(intent);
+                    }
+                    @Override
+                    public void onEditClick(Transaction t) { showEditTransactionDialog(t); }
+                    @Override
+                    public void onDeleteClick(Transaction t) { deleteTransaction(t); }
                 });
                 recyclerView.setAdapter(transactionAdapter);
                 break;
@@ -241,6 +253,75 @@ public class FinanceFragment extends Fragment {
         barChartFinance.animateY(1000);
         barChartFinance.invalidate();
     }
+    private List<Transaction> getFilteredTransactions() {
+        List<Transaction> all = db.transactionDao().getPersonalTransactions();
+        List<Transaction> result = new ArrayList<>();
+        for (Transaction t : all) {
+            boolean match = true;
+            if (filterDate != null && !t.date.equals(filterDate)) match = false;
+            if (filterCategory != null && t.categoryId != filterCategory) match = false;
+            if (match) result.add(t);
+        }
+        return result;
+    }
+    // Thêm 2 icon filter vào toolbar hoặc tabLayout (giả sử đã có toolbar)
+    @Override
+    public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
+        super.onViewCreated(view, savedInstanceState);
+        // Giả sử toolbar có id: toolbar
+        androidx.appcompat.widget.Toolbar toolbar = requireActivity().findViewById(R.id.toolbar);
+        if (toolbar != null) {
+            toolbar.getMenu().clear();
+            toolbar.inflateMenu(R.menu.menu_finance_filter);
+            toolbar.setOnMenuItemClickListener(item -> {
+                if (item.getItemId() == R.id.action_filter_date) {
+                    showDateFilterDialog();
+                    return true;
+                } else if (item.getItemId() == R.id.action_filter_category) {
+                    showCategoryFilterDialog();
+                    return true;
+                } else if (item.getItemId() == R.id.action_clear_filter) {
+                    filterDate = null;
+                    filterCategory = null;
+                    showTab(0);
+                    return true;
+                }
+                return false;
+            });
+        }
+    }
+    private void showDateFilterDialog() {
+        Calendar calendar = Calendar.getInstance();
+        new android.app.DatePickerDialog(getContext(), (view, year, month, dayOfMonth) -> {
+            filterDate = String.format("%04d-%02d-%02d", year, month + 1, dayOfMonth);
+            showTab(0);
+        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+    }
+    private void showCategoryFilterDialog() {
+        String[] categories = {"Food", "Transport", "Shopping", "Other"};
+        new AlertDialog.Builder(getContext())
+            .setTitle("Filter by Category")
+            .setItems(categories, (dialog, which) -> {
+                filterCategory = which;
+                showTab(0);
+            })
+            .setNegativeButton("Clear", (d, w) -> {
+                filterCategory = null;
+                showTab(0);
+            })
+            .show();
+    }
+    private void showFilterDialog() {
+        String[] options = {"Filter by Date", "Filter by Category", "Clear Filter"};
+        new AlertDialog.Builder(getContext())
+            .setTitle("Filter Options")
+            .setItems(options, (dialog, which) -> {
+                if (which == 0) showDateFilterDialog();
+                else if (which == 1) showCategoryFilterDialog();
+                else if (which == 2) { filterDate = null; filterCategory = null; showTab(0); }
+            })
+            .show();
+    }
     private void showAddTransactionDialog() {
         View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_edit_transaction, null);
         EditText etTitle = dialogView.findViewById(R.id.etTitle);
@@ -286,6 +367,12 @@ public class FinanceFragment extends Fragment {
                     t.paidBy = 0;
                     t.accountId = accounts.get(spinnerAccount.getSelectedItemPosition()).id;
                     long transactionId = db.transactionDao().insert(t);
+                    // Trừ tiền vào account
+                    Account acc = db.accountDao().getAccountById(t.accountId);
+                    if (acc != null) {
+                        acc.balance -= t.amount;
+                        db.accountDao().update(acc);
+                    }
                     // Lưu ảnh hóa đơn nếu có
                     if (selectedBillImagePath != null) {
                         BillImage billImage = new BillImage();
@@ -404,6 +491,112 @@ public class FinanceFragment extends Fragment {
             })
             .setNegativeButton("Cancel", null)
             .show();
+    }
+    private void showEditTransactionDialog(Transaction t) {
+        View dialogView = getLayoutInflater().inflate(R.layout.dialog_add_edit_transaction, null);
+        EditText etTitle = dialogView.findViewById(R.id.etTitle);
+        EditText etAmount = dialogView.findViewById(R.id.etAmount);
+        Spinner spinnerCategory = dialogView.findViewById(R.id.spinnerCategory);
+        Spinner spinnerAccount = dialogView.findViewById(R.id.spinnerAccount);
+        EditText etNote = dialogView.findViewById(R.id.etNote);
+        DatePicker datePicker = dialogView.findViewById(R.id.datePicker);
+        ImageView ivBillImage = dialogView.findViewById(R.id.ivBillImage);
+        Button btnSelectImage = dialogView.findViewById(R.id.btnSelectImage);
+        currentTransactionImageView = ivBillImage;
+        selectedBillImageUri = null;
+        selectedBillImagePath = null;
+        btnSelectImage.setOnClickListener(v -> pickBillImage());
+        etTitle.setText(t.title);
+        etAmount.setText(String.valueOf(t.amount));
+        // Thiết lập spinner category
+        ArrayAdapter<String> categoryAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, new String[]{"Food", "Transport", "Shopping", "Other"});
+        categoryAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerCategory.setAdapter(categoryAdapter);
+        spinnerCategory.setSelection(t.categoryId);
+        // Thiết lập spinner account
+        java.util.List<Account> accounts = db.accountDao().getAllAccounts();
+        ArrayAdapter<String> accountAdapter = new ArrayAdapter<>(getContext(), android.R.layout.simple_spinner_item, accounts.stream().map(a -> a.name).toArray(String[]::new));
+        accountAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerAccount.setAdapter(accountAdapter);
+        int accIndex = 0;
+        for (int i = 0; i < accounts.size(); i++) if (accounts.get(i).id == t.accountId) accIndex = i;
+        spinnerAccount.setSelection(accIndex);
+        etNote.setText(t.note);
+        String[] dateParts = t.date.split("-");
+        if (dateParts.length == 3) datePicker.updateDate(Integer.parseInt(dateParts[0]), Integer.parseInt(dateParts[1]) - 1, Integer.parseInt(dateParts[2]));
+        // Hiển thị ảnh bill cũ nếu có
+        java.util.List<BillImage> billImages = db.billImageDao().getImagesByTransactionId(t.id);
+        if (billImages != null && billImages.size() > 0) {
+            com.squareup.picasso.Picasso.get().load(new java.io.File(billImages.get(0).imagePath)).placeholder(R.drawable.ic_camera).into(ivBillImage);
+        }
+        new AlertDialog.Builder(getContext())
+            .setTitle("Edit Transaction")
+            .setView(dialogView)
+            .setPositiveButton("Save", (d, w) -> {
+                String title = etTitle.getText().toString().trim();
+                String amountStr = etAmount.getText().toString().trim();
+                if (title.isEmpty() || amountStr.isEmpty() || accounts.isEmpty()) {
+                    Toast.makeText(getContext(), "Please fill all required fields!", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+                try {
+                    double oldAmount = t.amount;
+                    int oldAccountId = t.accountId;
+                    double newAmount = Double.parseDouble(amountStr);
+                    int newAccountId = accounts.get(spinnerAccount.getSelectedItemPosition()).id;
+                    // Hoàn lại số dư cũ
+                    Account oldAcc = db.accountDao().getAccountById(oldAccountId);
+                    if (oldAcc != null) {
+                        oldAcc.balance += oldAmount;
+                        db.accountDao().update(oldAcc);
+                    }
+                    // Trừ số dư mới
+                    Account newAcc = db.accountDao().getAccountById(newAccountId);
+                    if (newAcc != null) {
+                        newAcc.balance -= newAmount;
+                        db.accountDao().update(newAcc);
+                    }
+                    t.title = title;
+                    t.amount = newAmount;
+                    t.categoryId = spinnerCategory.getSelectedItemPosition();
+                    t.date = String.format("%04d-%02d-%02d", datePicker.getYear(), datePicker.getMonth() + 1, datePicker.getDayOfMonth());
+                    t.note = etNote.getText().toString();
+                    t.accountId = newAccountId;
+                    db.transactionDao().update(t);
+                    // Xử lý ảnh hóa đơn
+                    if (selectedBillImagePath != null) {
+                        // Xóa bill image cũ (nếu có)
+                        java.util.List<BillImage> oldImages = db.billImageDao().getImagesByTransactionId(t.id);
+                        if (oldImages != null && oldImages.size() > 0) {
+                            for (BillImage img : oldImages) {
+                                java.io.File f = new java.io.File(img.imagePath);
+                                if (f.exists()) f.delete();
+                                db.billImageDao().delete(img);
+                            }
+                        }
+                        // Lưu bill image mới
+                        BillImage billImage = new BillImage();
+                        billImage.transactionId = t.id;
+                        billImage.imagePath = selectedBillImagePath;
+                        db.billImageDao().insert(billImage);
+                    }
+                    showTab(0);
+                } catch (Exception ex) {
+                    Toast.makeText(getContext(), "Invalid input!", Toast.LENGTH_SHORT).show();
+                }
+            })
+            .setNegativeButton("Cancel", null)
+            .show();
+    }
+    private void deleteTransaction(Transaction t) {
+        // Hoàn lại số dư cho account
+        Account acc = db.accountDao().getAccountById(t.accountId);
+        if (acc != null) {
+            acc.balance += t.amount;
+            db.accountDao().update(acc);
+        }
+        db.transactionDao().delete(t);
+        showTab(0);
     }
     private void pickBillImage() {
         Intent intent = new Intent(Intent.ACTION_PICK, android.provider.MediaStore.Images.Media.EXTERNAL_CONTENT_URI);

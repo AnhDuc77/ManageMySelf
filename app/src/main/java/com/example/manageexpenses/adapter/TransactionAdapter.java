@@ -20,6 +20,8 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
 
     public interface OnItemClickListener {
         void onItemClick(Transaction transaction);
+        void onEditClick(Transaction transaction);
+        void onDeleteClick(Transaction transaction);
     }
 
     public TransactionAdapter(Context context, List<Transaction> transactions, OnItemClickListener listener) {
@@ -47,9 +49,22 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
         if (holder.ivBillImage != null && t.id > 0) {
             // Để đơn giản, giả sử ảnh lưu theo path: /storage/emulated/0/Pictures/bill_{id}.jpg
             String imagePath = "/storage/emulated/0/Pictures/bill_" + t.id + ".jpg";
-            Picasso.get().load(imagePath).placeholder(R.drawable.ic_camera).into(holder.ivBillImage);
+            com.squareup.picasso.Picasso.get().load(imagePath).placeholder(R.drawable.ic_camera).into(holder.ivBillImage);
         }
         holder.itemView.setOnClickListener(v -> listener.onItemClick(t));
+        holder.btnMenu.setOnClickListener(v -> showPopupMenu(holder.btnMenu, t));
+    }
+
+    private void showPopupMenu(View anchor, Transaction t) {
+        android.widget.PopupMenu popup = new android.widget.PopupMenu(context, anchor);
+        popup.getMenu().add("Edit");
+        popup.getMenu().add("Delete");
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getTitle().equals("Edit")) listener.onEditClick(t);
+            else if (item.getTitle().equals("Delete")) listener.onDeleteClick(t);
+            return true;
+        });
+        popup.show();
     }
 
     @Override
@@ -60,6 +75,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
     public static class TransactionViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvAmount, tvCategory, tvDate, tvNote;
         ImageView ivBillImage;
+        android.widget.ImageButton btnMenu;
         public TransactionViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tvTitle);
@@ -68,6 +84,7 @@ public class TransactionAdapter extends RecyclerView.Adapter<TransactionAdapter.
             tvDate = itemView.findViewById(R.id.tvDate);
             tvNote = itemView.findViewById(R.id.tvNote);
             ivBillImage = itemView.findViewById(R.id.ivBillImage);
+            btnMenu = itemView.findViewById(R.id.btnMenu);
         }
     }
 } 

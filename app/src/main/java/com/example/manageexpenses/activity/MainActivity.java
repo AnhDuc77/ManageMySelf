@@ -92,139 +92,139 @@ public class MainActivity extends AppCompatActivity {
         ft.replace(R.id.fragmentContainer, fragment);
         ft.commit();
     }
-    private void showFinance() {
-        transactionList = db.transactionDao().getPersonalTransactions();
-        transactionAdapter = new TransactionAdapter(this, transactionList, t -> {
-            // TODO: Mở chi tiết transaction
-            Toast.makeText(this, "Transaction: " + t.title, Toast.LENGTH_SHORT).show();
-        });
-        recyclerView.setAdapter(transactionAdapter);
-    }
-    private void showTasks(String tag) {
-        if (filterDate == null && filterPriority == null) {
-            taskList = db.taskDao().getTasksByTag(tag);
-        } else if (filterDate != null && filterPriority == null) {
-            taskList = db.taskDao().getTasksByTagAndDate(tag, filterDate);
-        } else if (filterDate == null) {
-            taskList = db.taskDao().getTasksByTagAndPriority(tag, filterPriority);
-        } else {
-            taskList = db.taskDao().getTasksByTagDatePriority(tag, filterDate, filterPriority);
-        }
-        taskAdapter = new TaskAdapter(this, taskList, new TaskAdapter.OnItemClickListener() {
-            @Override
-            public void onItemClick(Task task) {
-                // Có thể mở dialog sửa task nếu muốn
-            }
-            @Override
-            public void onStatusClick(Task task) {
-                task.isCompleted = !task.isCompleted;
-                db.taskDao().update(task);
-                showTasks(tag);
-            }
-            @Override
-            public void onDeleteClick(Task task) {
-                db.taskDao().delete(task);
-                showTasks(tag);
-            }
-        });
-        recyclerView.setAdapter(taskAdapter);
-    }
-    private void showAddTaskDialog(String tag) {
-        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_edit_task, null);
-        etTaskTitle = dialogView.findViewById(R.id.etTaskTitle);
-        etTaskDescription = dialogView.findViewById(R.id.etTaskDescription);
-        datePickerTask = dialogView.findViewById(R.id.datePickerTask);
-        spinnerPriority = dialogView.findViewById(R.id.spinnerPriority);
-        spinnerTag = dialogView.findViewById(R.id.spinnerTag);
+//    private void showFinance() {
+//        transactionList = db.transactionDao().getPersonalTransactions();
+//        transactionAdapter = new TransactionAdapter(this, transactionList, t -> {
+//            // TODO: Mở chi tiết transaction
+//            Toast.makeText(this, "Transaction: " + t.title, Toast.LENGTH_SHORT).show();
+//        });
+//        recyclerView.setAdapter(transactionAdapter);
+//    }
+//    private void showTasks(String tag) {
+//        if (filterDate == null && filterPriority == null) {
+//            taskList = db.taskDao().getTasksByTag(tag);
+//        } else if (filterDate != null && filterPriority == null) {
+//            taskList = db.taskDao().getTasksByTagAndDate(tag, filterDate);
+//        } else if (filterDate == null) {
+//            taskList = db.taskDao().getTasksByTagAndPriority(tag, filterPriority);
+//        } else {
+//            taskList = db.taskDao().getTasksByTagDatePriority(tag, filterDate, filterPriority);
+//        }
+//        taskAdapter = new TaskAdapter(this, taskList, new TaskAdapter.OnItemClickListener() {
+//            @Override
+//            public void onItemClick(Task task) {
+//                // Có thể mở dialog sửa task nếu muốn
+//            }
+//            @Override
+//            public void onStatusClick(Task task) {
+//                task.isCompleted = !task.isCompleted;
+//                db.taskDao().update(task);
+//                showTasks(tag);
+//            }
+//            @Override
+//            public void onDeleteClick(Task task) {
+//                db.taskDao().delete(task);
+//                showTasks(tag);
+//            }
+//        });
+//        recyclerView.setAdapter(taskAdapter);
+//    }
+//    private void showAddTaskDialog(String tag) {
+//        View dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_add_edit_task, null);
+//        etTaskTitle = dialogView.findViewById(R.id.etTaskTitle);
+//        etTaskDescription = dialogView.findViewById(R.id.etTaskDescription);
+//        datePickerTask = dialogView.findViewById(R.id.datePickerTask);
+//        spinnerPriority = dialogView.findViewById(R.id.spinnerPriority);
+//        spinnerTag = dialogView.findViewById(R.id.spinnerTag);
+//
+//        ArrayAdapter<String> priorityAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Low", "Medium", "High"});
+//        priorityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        spinnerPriority.setAdapter(priorityAdapter);
+//
+//        ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, tags);
+//        tagAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+//        spinnerTag.setAdapter(tagAdapter);
+//        spinnerTag.setSelection(java.util.Arrays.asList(tags).indexOf(tag));
+//
+//        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+//            .setTitle("Add Task")
+//            .setView(dialogView)
+//            .setPositiveButton("Save", (d, which) -> {
+//                String title = etTaskTitle.getText().toString();
+//                String desc = etTaskDescription.getText().toString();
+//                int priority = spinnerPriority.getSelectedItemPosition();
+//                String selectedTag = spinnerTag.getSelectedItem().toString();
+//                int day = datePickerTask.getDayOfMonth();
+//                int month = datePickerTask.getMonth() + 1;
+//                int year = datePickerTask.getYear();
+//                String dueDate = String.format("%04d-%02d-%02d", year, month, day);
+//
+//                Task newTask = new Task();
+//                newTask.title = title;
+//                newTask.description = desc;
+//                newTask.dueDate = dueDate;
+//                newTask.priority = priority;
+//                newTask.isCompleted = false;
+//                newTask.tag = selectedTag;
+//
+//                db.taskDao().insert(newTask);
+////                showTasks(selectedTag);
+//            })
+//            .setNegativeButton("Cancel", null);
+//        taskDialog = builder.create();
+//        taskDialog.show();
+//    }
 
-        ArrayAdapter<String> priorityAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, new String[]{"Low", "Medium", "High"});
-        priorityAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerPriority.setAdapter(priorityAdapter);
+//    @Override
+//    public boolean onCreateOptionsMenu(Menu menu) {
+//        MenuInflater inflater = getMenuInflater();
+//        inflater.inflate(R.menu.menu_task_filter, menu);
+//        return true;
+//    }
 
-        ArrayAdapter<String> tagAdapter = new ArrayAdapter<>(this, android.R.layout.simple_spinner_item, tags);
-        tagAdapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
-        spinnerTag.setAdapter(tagAdapter);
-        spinnerTag.setSelection(java.util.Arrays.asList(tags).indexOf(tag));
+//    @Override
+//    public boolean onOptionsItemSelected(MenuItem item) {
+//        if (item.getItemId() == R.id.action_filter_date) {
+//            showDateFilterDialog();
+//            return true;
+//        } else if (item.getItemId() == R.id.action_filter_priority) {
+//            showPriorityFilterDialog();
+//            return true;
+//        } else if (item.getItemId() == R.id.action_clear_completed) {
+//            clearCompletedTasks();
+//            return true;
+//        }
+//        return super.onOptionsItemSelected(item);
+//    }
 
-        AlertDialog.Builder builder = new AlertDialog.Builder(this)
-            .setTitle("Add Task")
-            .setView(dialogView)
-            .setPositiveButton("Save", (d, which) -> {
-                String title = etTaskTitle.getText().toString();
-                String desc = etTaskDescription.getText().toString();
-                int priority = spinnerPriority.getSelectedItemPosition();
-                String selectedTag = spinnerTag.getSelectedItem().toString();
-                int day = datePickerTask.getDayOfMonth();
-                int month = datePickerTask.getMonth() + 1;
-                int year = datePickerTask.getYear();
-                String dueDate = String.format("%04d-%02d-%02d", year, month, day);
-
-                Task newTask = new Task();
-                newTask.title = title;
-                newTask.description = desc;
-                newTask.dueDate = dueDate;
-                newTask.priority = priority;
-                newTask.isCompleted = false;
-                newTask.tag = selectedTag;
-
-                db.taskDao().insert(newTask);
-                showTasks(selectedTag);
-            })
-            .setNegativeButton("Cancel", null);
-        taskDialog = builder.create();
-        taskDialog.show();
-    }
-
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.menu_task_filter, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
-        if (item.getItemId() == R.id.action_filter_date) {
-            showDateFilterDialog();
-            return true;
-        } else if (item.getItemId() == R.id.action_filter_priority) {
-            showPriorityFilterDialog();
-            return true;
-        } else if (item.getItemId() == R.id.action_clear_completed) {
-            clearCompletedTasks();
-            return true;
-        }
-        return super.onOptionsItemSelected(item);
-    }
-
-    private void showDateFilterDialog() {
-        Calendar calendar = Calendar.getInstance();
-        new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
-            filterDate = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth);
-            showTasks(tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString());
-        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
-    }
-
-    private void showPriorityFilterDialog() {
-        String[] priorities = {"Low", "Medium", "High"};
-        new AlertDialog.Builder(this)
-            .setTitle("Filter by Priority")
-            .setItems(priorities, (dialog, which) -> {
-                filterPriority = which;
-                showTasks(tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString());
-            })
-            .setNegativeButton("Clear", (d, w) -> {
-                filterPriority = null;
-                showTasks(tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString());
-            })
-            .show();
-    }
-
-    private void clearCompletedTasks() {
-        List<Task> completed = db.taskDao().getCompletedTasks();
-        for (Task t : completed) db.taskDao().delete(t);
-        showTasks(tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString());
-    }
+//    private void showDateFilterDialog() {
+//        Calendar calendar = Calendar.getInstance();
+//        new DatePickerDialog(this, (view, year, month, dayOfMonth) -> {
+//            filterDate = String.format(Locale.getDefault(), "%04d-%02d-%02d", year, month + 1, dayOfMonth);
+//            showTasks(tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString());
+//        }, calendar.get(Calendar.YEAR), calendar.get(Calendar.MONTH), calendar.get(Calendar.DAY_OF_MONTH)).show();
+//    }
+//
+//    private void showPriorityFilterDialog() {
+//        String[] priorities = {"Low", "Medium", "High"};
+//        new AlertDialog.Builder(this)
+//            .setTitle("Filter by Priority")
+//            .setItems(priorities, (dialog, which) -> {
+//                filterPriority = which;
+//                showTasks(tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString());
+//            })
+//            .setNegativeButton("Clear", (d, w) -> {
+//                filterPriority = null;
+//                showTasks(tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString());
+//            })
+//            .show();
+//    }
+//
+//    private void clearCompletedTasks() {
+//        List<Task> completed = db.taskDao().getCompletedTasks();
+//        for (Task t : completed) db.taskDao().delete(t);
+//        showTasks(tabLayout.getTabAt(tabLayout.getSelectedTabPosition()).getText().toString());
+//    }
 
     private void setToolbarTitle(String title) {
         if (getSupportActionBar() != null) {

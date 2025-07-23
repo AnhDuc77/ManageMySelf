@@ -57,8 +57,19 @@ public class GroupActivity extends AppCompatActivity {
         rvMembers.setAdapter(memberAdapter);
         // Load transactions
         transactionList = db.transactionDao().getTransactionsByGroupId(groupId);
-        transactionAdapter = new TransactionAdapter(this, transactionList, t -> {
-            Toast.makeText(this, "Transaction: " + t.title, Toast.LENGTH_SHORT).show();
+        transactionAdapter = new TransactionAdapter(this, transactionList, new TransactionAdapter.OnItemClickListener() {
+            @Override
+            public void onItemClick(Transaction t) {
+                Toast.makeText(GroupActivity.this, "Transaction: " + t.title, Toast.LENGTH_SHORT).show();
+            }
+            @Override
+            public void onEditClick(Transaction t) {
+                // Có thể mở dialog edit transaction nếu muốn, hoặc để trống
+            }
+            @Override
+            public void onDeleteClick(Transaction t) {
+                // Có thể xử lý xóa transaction nếu muốn, hoặc để trống
+            }
         });
         rvGroupTransactions.setLayoutManager(new LinearLayoutManager(this));
         rvGroupTransactions.setAdapter(transactionAdapter);

@@ -35,6 +35,8 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 import com.bumptech.glide.Glide;
 import java.io.FileOutputStream;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.signature.ObjectKey;
 
 public class ProfileFragment extends Fragment {
     private AppDatabase db;
@@ -66,11 +68,17 @@ public class ProfileFragment extends Fragment {
                                 if (bm != null) {
                                     String filePath = saveAvatarToInternalStorage(bm);
                                     if (filePath != null) {
+                                        // Xóa file cũ nếu có
+                                        File oldFile = new File(requireContext().getFilesDir(), "avatar.jpg");
+                                        if (oldFile.exists()) oldFile.delete();
                                         saveAvatarFilePath(filePath);
-                                        Glide.with(this)
-                                            .load(new File(filePath))
-                                            .circleCrop()
-                                            .into(ivAvatar);
+                                        if (ivAvatar != null && isAdded()) {
+                                            Glide.with(requireContext())
+                                                .load(new File(filePath))
+                                                .circleCrop()
+                                                .signature(new ObjectKey(System.currentTimeMillis()))
+                                                .into(ivAvatar);
+                                        }
                                     }
                                 }
                             }
@@ -102,9 +110,10 @@ public class ProfileFragment extends Fragment {
         String avatarPath = getAvatarFilePath();
         if (avatarPath != null) {
             try {
-                Glide.with(this)
+                Glide.with(requireContext())
                     .load(new File(avatarPath))
                     .circleCrop()
+                    .signature(new ObjectKey(System.currentTimeMillis()))
                     .into(ivAvatar);
             } catch (Exception e) {
                 e.printStackTrace();
@@ -141,6 +150,25 @@ public class ProfileFragment extends Fragment {
         return view;
     }
 
+    @Override
+    public void onResume() {
+        super.onResume();
+        // Luôn load lại avatar khi quay lại tab
+        String avatarPath = getAvatarFilePath();
+        if (avatarPath != null && ivAvatar != null && isAdded()) {
+            try {
+                Glide.with(requireContext())
+                    .load(new File(avatarPath))
+                    .circleCrop()
+                    .signature(new ObjectKey(System.currentTimeMillis()))
+                    .into(ivAvatar);
+            } catch (Exception e) {
+                e.printStackTrace();
+                ivAvatar.setImageResource(R.drawable.ic_camera);
+            }
+        }
+    }
+
     private void pickImage() {
         Intent intent = new Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI);
         pickImageLauncher.launch(intent);
@@ -158,7 +186,15 @@ public class ProfileFragment extends Fragment {
     }
     private String saveAvatarToInternalStorage(Bitmap bitmap) {
         try {
-            File file = new File(requireContext().getFilesDir(), "avatar.jpg");
+            // Xóa file cũ nếu có
+            String oldPath = getAvatarFilePath();
+            if (oldPath != null) {
+                File oldFile = new File(oldPath);
+                if (oldFile.exists()) oldFile.delete();
+            }
+            // Lưu file mới với tên duy nhất
+            String fileName = "avatar_" + System.currentTimeMillis() + ".jpg";
+            File file = new File(requireContext().getFilesDir(), fileName);
             FileOutputStream fos = new FileOutputStream(file);
             bitmap.compress(Bitmap.CompressFormat.JPEG, 90, fos);
             fos.close();
