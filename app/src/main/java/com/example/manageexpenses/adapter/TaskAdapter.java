@@ -7,6 +7,7 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Button;
+import android.widget.ImageButton;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 import com.example.manageexpenses.R;
@@ -19,9 +20,9 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
     private OnItemClickListener listener;
 
     public interface OnItemClickListener {
-        void onItemClick(Task task);
-        void onStatusClick(Task task);
+        void onEditClick(Task task);
         void onDeleteClick(Task task);
+        void onStatusClick(Task task);
     }
 
     public TaskAdapter(Context context, List<Task> tasks, OnItemClickListener listener) {
@@ -44,12 +45,23 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
         holder.tvDescription.setText(t.description);
         holder.tvDeadline.setText(t.dueDate);
         holder.tvTag.setText(t.tag);
-        holder.ivStatus.setImageResource(t.isCompleted ? android.R.drawable.checkbox_on_background : android.R.drawable.checkbox_off_background);
         holder.tvStatus.setText(t.isCompleted ? "Done" : "Pending");
-        holder.tvStatus.setTextColor(t.isCompleted ? 0xFF388E3C : 0xFFD32F2F); // xanh/đỏ
-        holder.itemView.setOnClickListener(v -> listener.onItemClick(t));
-        holder.ivStatus.setOnClickListener(v -> listener.onStatusClick(t));
-        holder.btnDelete.setOnClickListener(v -> listener.onDeleteClick(t));
+        holder.tvStatus.setTextColor(t.isCompleted ? 0xFF388E3C : 0xFFD32F2F);
+        holder.itemView.setOnClickListener(v -> listener.onEditClick(t));
+        holder.btnMenu.setOnClickListener(v -> showPopupMenu(holder.btnMenu, t));
+    }
+    private void showPopupMenu(View anchor, Task t) {
+        android.widget.PopupMenu popup = new android.widget.PopupMenu(context, anchor);
+        popup.getMenu().add("Edit");
+        popup.getMenu().add("Delete");
+        popup.getMenu().add(t.isCompleted ? "Mark as Pending" : "Mark as Done");
+        popup.setOnMenuItemClickListener(item -> {
+            if (item.getTitle().equals("Edit")) listener.onEditClick(t);
+            else if (item.getTitle().equals("Delete")) listener.onDeleteClick(t);
+            else listener.onStatusClick(t);
+            return true;
+        });
+        popup.show();
     }
 
     @Override
@@ -59,17 +71,15 @@ public class TaskAdapter extends RecyclerView.Adapter<TaskAdapter.TaskViewHolder
 
     public static class TaskViewHolder extends RecyclerView.ViewHolder {
         TextView tvTitle, tvDescription, tvDeadline, tvTag, tvStatus;
-        ImageView ivStatus;
-        Button btnDelete;
+        ImageButton btnMenu;
         public TaskViewHolder(@NonNull View itemView) {
             super(itemView);
             tvTitle = itemView.findViewById(R.id.tvTaskTitle);
             tvDescription = itemView.findViewById(R.id.tvTaskDescription);
             tvDeadline = itemView.findViewById(R.id.tvTaskDeadline);
             tvTag = itemView.findViewById(R.id.tvTaskTag);
-            ivStatus = itemView.findViewById(R.id.ivTaskStatus);
             tvStatus = itemView.findViewById(R.id.tvTaskStatus);
-            btnDelete = itemView.findViewById(R.id.btnDeleteTask);
+            btnMenu = itemView.findViewById(R.id.btnTaskMenu);
         }
     }
 } 

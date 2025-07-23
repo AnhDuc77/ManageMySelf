@@ -15,8 +15,9 @@ import com.example.manageexpenses.dao.*;
         Category.class,
         Task.class,
         Account.class,
-        DebtCredit.class
-    }, version = 2)
+        DebtCredit.class,
+        ReminderTask.class
+    }, version = 3)
 public abstract class AppDatabase extends RoomDatabase {
     public abstract TransactionDao transactionDao();
     public abstract GroupDao groupDao();
@@ -27,4 +28,5 @@ public abstract class AppDatabase extends RoomDatabase {
     public abstract TaskDao taskDao();
     public abstract AccountDao accountDao();
     public abstract DebtCreditDao debtCreditDao();
+    public abstract ReminderTaskDao reminderTaskDao();
 } 
