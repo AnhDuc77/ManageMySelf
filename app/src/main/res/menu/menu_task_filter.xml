@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/action_filter_date"
+        android:title="Filter by Date"
+        android:icon="@android:drawable/ic_menu_my_calendar"
+        android:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_filter_priority"
+        android:title="Filter by Priority"
+        android:icon="@android:drawable/ic_menu_sort_by_size"
+        android:showAsAction="ifRoom"/>
+    <item
+        android:id="@+id/action_clear_completed"
+        android:title="Clear Completed Tasks"
+        android:icon="@android:drawable/ic_menu_delete"
+        android:showAsAction="never"/>
+</menu> 

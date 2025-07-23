@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.cardview.widget.CardView xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:layout_margin="8dp"
+    app:cardElevation="2dp">
+
+    <RelativeLayout
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:padding="12dp">
+
+        <TextView
+            android:id="@+id/tvDebtType"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Debt"
+            android:layout_alignParentStart="true"
+            android:layout_alignParentTop="true"
+            android:textColor="@android:color/holo_red_dark"
+            android:layout_marginEnd="48dp"/>
+
+        <TextView
+            android:id="@+id/tvDebtName"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Name"
+            android:textStyle="bold"
+            android:textSize="16sp"
+            android:layout_below="@id/tvDebtType"
+            android:layout_alignParentStart="true"
+            android:layout_marginEnd="48dp"/>
+
+        <TextView
+            android:id="@+id/tvDebtAmount"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Amount: 500,000"
+            android:layout_below="@id/tvDebtName"
+            android:layout_alignParentStart="true"
+            android:textColor="@android:color/holo_red_dark"
+            android:layout_marginEnd="48dp"/>
+
+        <TextView
+            android:id="@+id/tvDebtDueDate"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Due: 2024-05-10"
+            android:layout_below="@id/tvDebtAmount"
+            android:layout_alignParentStart="true"
+            android:textColor="@android:color/darker_gray"
+            android:layout_marginEnd="48dp"/>
+
+        <TextView
+            android:id="@+id/tvDebtStatus"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Status: Unpaid"
+            android:textColor="@android:color/holo_orange_dark"
+            android:layout_below="@id/tvDebtDueDate"
+            android:layout_alignParentStart="true"
+            android:textStyle="bold"
+            android:layout_marginEnd="48dp"/>
+
+        <ImageView
+            android:id="@+id/ivDebtIcon"
+            android:layout_width="24dp"
+            android:layout_height="24dp"
+            android:src="@android:drawable/ic_menu_info_details"
+            android:layout_alignParentBottom="true"
+            android:layout_alignParentEnd="true"
+            android:contentDescription="Debt Icon"/>
+
+        <ImageButton
+            android:id="@+id/btnDebtMenu"
+            android:layout_width="32dp"
+            android:layout_height="32dp"
+            android:src="@android:drawable/ic_menu_more"
+            android:background="@android:color/transparent"
+            android:layout_alignParentTop="true"
+            android:layout_alignParentEnd="true"
+            android:contentDescription="Menu"
+            android:layout_marginTop="0dp"
+            android:layout_marginEnd="0dp"/>
+    </RelativeLayout>
+</androidx.cardview.widget.CardView> 

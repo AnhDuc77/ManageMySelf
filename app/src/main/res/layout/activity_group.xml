@@ -1,0 +1,87 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
+
+    <TextView
+        android:id="@+id/tvGroupName"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="Group Name"
+        android:textStyle="bold"
+        android:textSize="20sp"
+        android:gravity="center"
+        android:padding="8dp"
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"/>
+
+    <TextView
+        android:id="@+id/tvMembersLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Members:"
+        app:layout_constraintTop_toBottomOf="@id/tvGroupName"
+        app:layout_constraintStart_toStartOf="parent"
+        android:paddingStart="8dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvMembers"
+        android:layout_width="0dp"
+        android:layout_height="60dp"
+        android:orientation="horizontal"
+        app:layout_constraintTop_toBottomOf="@id/tvGroupName"
+        app:layout_constraintStart_toEndOf="@id/tvMembersLabel"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="4dp"/>
+
+    <TextView
+        android:id="@+id/tvTransactionsLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Transactions:"
+        app:layout_constraintTop_toBottomOf="@id/rvMembers"
+        app:layout_constraintStart_toStartOf="parent"
+        android:paddingStart="8dp"/>
+
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/rvGroupTransactions"
+        android:layout_width="0dp"
+        android:layout_height="0dp"
+        app:layout_constraintTop_toBottomOf="@id/tvTransactionsLabel"
+        app:layout_constraintBottom_toTopOf="@id/tvResultLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="4dp"/>
+
+    <TextView
+        android:id="@+id/tvResultLabel"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Settlement Result:"
+        app:layout_constraintTop_toBottomOf="@id/rvGroupTransactions"
+        app:layout_constraintStart_toStartOf="parent"
+        android:paddingStart="8dp"/>
+
+    <TextView
+        android:id="@+id/tvSettlementResult"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:text="A owes B 50k, C receives 30k..."
+        app:layout_constraintTop_toBottomOf="@id/tvResultLabel"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:padding="8dp"/>
+
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/fabAddGroupTransaction"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:src="@android:drawable/ic_input_add"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        android:layout_margin="16dp"
+        app:backgroundTint="@color/blue_500"/>
+
+</androidx.constraintlayout.widget.ConstraintLayout> 
