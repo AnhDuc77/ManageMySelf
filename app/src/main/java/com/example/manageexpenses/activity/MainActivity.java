@@ -60,6 +60,7 @@ public class MainActivity extends AppCompatActivity {
     private Integer filterPriority = null;
     private MaterialToolbar toolbar;
     private BottomNavigationView bottomNav;
+    private Integer openReminderId = null;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -74,9 +75,19 @@ public class MainActivity extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         bottomNav = findViewById(R.id.bottomNav);
+        // Lấy openReminderId nếu có
+        if (getIntent() != null && getIntent().hasExtra("openReminderId")) {
+            openReminderId = getIntent().getIntExtra("openReminderId", 0);
+        }
         // Mặc định hiển thị TodoFragment
         setToolbarTitle("To-Do List");
-        replaceFragment(new TodoFragment());
+        TodoFragment todoFragment = new TodoFragment();
+        if (openReminderId != null) {
+            Bundle args = new Bundle();
+            args.putInt("openReminderId", openReminderId);
+            todoFragment.setArguments(args);
+        }
+        replaceFragment(todoFragment);
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selected = null;
             String title = "";

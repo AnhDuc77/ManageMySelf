@@ -72,9 +72,25 @@ public class TodoFragment extends Fragment {
             tabLayout.addTab(tabLayout.newTab().setText(tag));
         }
         recyclerView.setLayoutManager(new LinearLayoutManager(getContext()));
-        String firstTag = tags[0];
-        tabLayout.getTabAt(0).select();
-        showTasks(firstTag);
+
+        Bundle args = getArguments();
+        boolean openedFromReminder = false;
+        if (args != null && args.containsKey("openReminderId")) {
+            for (int i = 0; i < tabLayout.getTabCount(); i++) {
+                if (tabLayout.getTabAt(i).getText().toString().equals("Reminder")) {
+                    tabLayout.getTabAt(i).select();
+                    openedFromReminder = true;
+                    break;
+                }
+            }
+        }
+        if (openedFromReminder) {
+            showReminders();
+        } else {
+            String firstTag = tags[0];
+            tabLayout.getTabAt(0).select();
+            showTasks(firstTag);
+        }
         tabLayout.addOnTabSelectedListener(new TabLayout.OnTabSelectedListener() {
             @Override
             public void onTabSelected(TabLayout.Tab tab) {
@@ -330,7 +346,7 @@ public class TodoFragment extends Fragment {
             dialogView.findViewById(R.id.cbWed), dialogView.findViewById(R.id.cbThu), dialogView.findViewById(R.id.cbFri), dialogView.findViewById(R.id.cbSat)
         };
         CheckBox cbEnabled = dialogView.findViewById(R.id.cbReminderEnabled);
-        // Điền dữ liệu cũ
+
         etTitle.setText(reminder.title);
         etDesc.setText(reminder.description);
         timePicker.setHour(reminder.hour);
