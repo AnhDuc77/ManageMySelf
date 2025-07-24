@@ -37,6 +37,9 @@ import com.bumptech.glide.Glide;
 import java.io.FileOutputStream;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.signature.ObjectKey;
+import android.widget.Spinner;
+import android.widget.ArrayAdapter;
+import android.widget.AdapterView;
 
 public class ProfileFragment extends Fragment {
     private AppDatabase db;
@@ -51,6 +54,10 @@ public class ProfileFragment extends Fragment {
     private PieChart pieChartTasks;
     private TextView tvCompleted, tvPending, tvExpense, tvBalance, tvDebts, tvCredits;
     private ActivityResultLauncher<Intent> pickImageLauncher;
+    private Button btnPickDate;
+    private Spinner spinnerStatType;
+    private java.util.Calendar selectedDate;
+    private String[] statTypes = {"Day", "Month"};
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -93,7 +100,6 @@ public class ProfileFragment extends Fragment {
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
         View view = inflater.inflate(R.layout.fragment_profile, container, false);
-        // tvStats = view.findViewById(R.id.tvProfileStats); // Đã loại bỏ khỏi layout
         db = Room.databaseBuilder(requireContext(), AppDatabase.class, "todo_manager.db")
                 .allowMainThreadQueries()
                 .fallbackToDestructiveMigration()
@@ -106,7 +112,25 @@ public class ProfileFragment extends Fragment {
         tvBalance = view.findViewById(R.id.tvProfileBalance);
         tvDebts = view.findViewById(R.id.tvProfileDebts);
         tvCredits = view.findViewById(R.id.tvProfileCredits);
-        // Load avatar nếu có
+        btnPickDate = view.findViewById(R.id.btnPickDate);
+        spinnerStatType = view.findViewById(R.id.spinnerStatType);
+
+        ArrayAdapter<String> adapter = new ArrayAdapter<>(requireContext(), android.R.layout.simple_spinner_item, statTypes);
+        adapter.setDropDownViewResource(android.R.layout.simple_spinner_dropdown_item);
+        spinnerStatType.setAdapter(adapter);
+
+        selectedDate = java.util.Calendar.getInstance();
+        updatePickDateButton();
+        btnPickDate.setOnClickListener(v -> showDatePicker());
+        spinnerStatType.setOnItemSelectedListener(new AdapterView.OnItemSelectedListener() {
+            @Override
+            public void onItemSelected(AdapterView<?> parent, View view, int position, long id) {
+                updateStatistics();
+            }
+            @Override
+            public void onNothingSelected(AdapterView<?> parent) {}
+        });
+
         String avatarPath = getAvatarFilePath();
         if (avatarPath != null) {
             try {
@@ -147,13 +171,15 @@ public class ProfileFragment extends Fragment {
         }
         pieChartTasks = view.findViewById(R.id.pieChartTasks);
         setupPieChart(completed, pending);
+
+        updateStatistics();
         return view;
     }
 
     @Override
     public void onResume() {
         super.onResume();
-        // Luôn load lại avatar khi quay lại tab
+
         String avatarPath = getAvatarFilePath();
         if (avatarPath != null && ivAvatar != null && isAdded()) {
             try {
@@ -186,13 +212,13 @@ public class ProfileFragment extends Fragment {
     }
     private String saveAvatarToInternalStorage(Bitmap bitmap) {
         try {
-            // Xóa file cũ nếu có
+
             String oldPath = getAvatarFilePath();
             if (oldPath != null) {
                 File oldFile = new File(oldPath);
                 if (oldFile.exists()) oldFile.delete();
             }
-            // Lưu file mới với tên duy nhất
+
             String fileName = "avatar_" + System.currentTimeMillis() + ".jpg";
             File file = new File(requireContext().getFilesDir(), fileName);
             FileOutputStream fos = new FileOutputStream(file);
@@ -242,5 +268,43 @@ public class ProfileFragment extends Fragment {
         pieChartTasks.setCenterText("Tasks");
         pieChartTasks.animateY(1000);
         pieChartTasks.invalidate();
+    }
+    private void updatePickDateButton() {
+        java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("dd/MM/yyyy");
+        btnPickDate.setText(sdf.format(selectedDate.getTime()));
+    }
+    private void showDatePicker() {
+        int year = selectedDate.get(java.util.Calendar.YEAR);
+        int month = selectedDate.get(java.util.Calendar.MONTH);
+        int day = selectedDate.get(java.util.Calendar.DAY_OF_MONTH);
+        new android.app.DatePickerDialog(requireContext(), (view, y, m, d) -> {
+            selectedDate.set(y, m, d);
+            updatePickDateButton();
+            updateStatistics();
+        }, year, month, day).show();
+    }
+    private void updateStatistics() {
+        int completed = 0, pending = 0;
+        int statType = spinnerStatType.getSelectedItemPosition();
+        java.text.SimpleDateFormat sdfDay = new java.text.SimpleDateFormat("yyyy-MM-dd");
+        java.text.SimpleDateFormat sdfMonth = new java.text.SimpleDateFormat("yyyy-MM");
+        String dateStr = sdfDay.format(selectedDate.getTime());
+        String monthStr = sdfMonth.format(selectedDate.getTime());
+        try {
+            if (statType == 0) {
+                completed = db.taskDao().getCompletedTaskCountByDate(dateStr);
+                pending = db.taskDao().getPendingTaskCountByDate(dateStr);
+            } else {
+                completed = db.taskDao().getCompletedTaskCountByMonth(monthStr);
+                pending = db.taskDao().getPendingTaskCountByMonth(monthStr);
+            }
+        } catch (Exception e) {
+            completed = 0; pending = 0;
+        }
+        setupPieChart(completed, pending);
+        try {
+            tvCompleted.setText("Completed tasks: " + completed);
+            tvPending.setText("Pending tasks: " + pending);
+        } catch (Exception e) {}
     }
 } 

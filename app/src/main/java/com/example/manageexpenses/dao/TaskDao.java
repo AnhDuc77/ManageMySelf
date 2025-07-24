@@ -44,4 +44,16 @@ public interface TaskDao {
 
     @Query("SELECT * FROM Task WHERE tag = :tag AND dueDate = :date AND priority = :priority")
     List<Task> getTasksByTagDatePriority(String tag, String date, int priority);
+
+    @Query("SELECT COUNT(*) FROM Task WHERE isCompleted = 1 AND dueDate = :date")
+    int getCompletedTaskCountByDate(String date);
+
+    @Query("SELECT COUNT(*) FROM Task WHERE isCompleted = 0 AND dueDate = :date")
+    int getPendingTaskCountByDate(String date);
+
+    @Query("SELECT COUNT(*) FROM Task WHERE isCompleted = 1 AND dueDate LIKE :month || '%'")
+    int getCompletedTaskCountByMonth(String month);
+
+    @Query("SELECT COUNT(*) FROM Task WHERE isCompleted = 0 AND dueDate LIKE :month || '%'")
+    int getPendingTaskCountByMonth(String month);
 } 
