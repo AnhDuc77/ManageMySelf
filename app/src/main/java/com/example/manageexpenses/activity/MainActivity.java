@@ -72,6 +72,10 @@ public class MainActivity extends AppCompatActivity {
                 ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.POST_NOTIFICATIONS}, 1001);
             }
         }
+        // Xin quyền location
+        if (ContextCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            ActivityCompat.requestPermissions(this, new String[]{Manifest.permission.ACCESS_FINE_LOCATION}, 1002);
+        }
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
         bottomNav = findViewById(R.id.bottomNav);
@@ -97,6 +101,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (item.getItemId() == R.id.nav_finance) {
                 selected = new FinanceFragment();
                 title = "Finance";
+            } else if (item.getItemId() == R.id.nav_map) {
+                selected = new MapFragment();
+                title = "Map";
             } else if (item.getItemId() == R.id.nav_profile) {
                 selected = new ProfileFragment();
                 title = "Profile";
